@@ -48,17 +48,15 @@ describe("server-config", () => {
   });
 
   describe("profileSigning", () => {
-    it("returns undefined for unsigned in development", () => {
+    it("returns undefined for unsigned mode", () => {
       vi.stubEnv("UDID_TOOLS_PROFILE_SIGNING_MODE", "unsigned");
-      vi.stubEnv("NODE_ENV", "development");
-      const signing = profileSigning();
-      expect(signing).toBeUndefined();
+      expect(profileSigning()).toBeUndefined();
     });
 
-    it("throws in production when unsigned", () => {
-      vi.stubEnv("UDID_TOOLS_PROFILE_SIGNING_MODE", "unsigned");
-      vi.stubEnv("NODE_ENV", "production");
-      expect(() => profileSigning()).toThrow("Unsigned profiles are disabled in production");
+    it("defaults to unsigned when no signing key is provided", () => {
+      delete process.env["UDID_TOOLS_PROFILE_SIGNING_MODE"];
+      delete process.env["UDID_TOOLS_PROFILE_SIGNING_PKCS12_BASE64"];
+      expect(profileSigning()).toBeUndefined();
     });
 
     it("throws when signing mode is neither signed nor unsigned", () => {
@@ -84,21 +82,41 @@ describe("server-config", () => {
       expect(signing?.identity.type).toBe("pkcs12");
       expect(signing?.certificateChain).toHaveLength(1);
     });
+
+    it("returns signing configuration with empty chain when chain is omitted", () => {
+      vi.stubEnv("UDID_TOOLS_PROFILE_SIGNING_MODE", "signed");
+      vi.stubEnv(
+        "UDID_TOOLS_PROFILE_SIGNING_PKCS12_BASE64",
+        Buffer.from("pkcs12-data").toString("base64")
+      );
+      delete process.env["UDID_TOOLS_PROFILE_SIGNING_CERTIFICATE_CHAIN_PEM"];
+      const signing = profileSigning();
+      expect(signing?.certificateChain).toEqual([]);
+    });
   });
 
   describe("profileResponseVerification", () => {
-    it("returns none in development when configured", () => {
+    it("returns none mode when configured", () => {
       vi.stubEnv("UDID_TOOLS_PROFILE_RESPONSE_VERIFICATION_MODE", "none");
-      vi.stubEnv("NODE_ENV", "development");
       const config = profileResponseVerification();
       expect(config.allowUnsigned).toBe(true);
       expect(config.verification.mode).toBe("none");
     });
 
-    it("returns signature mode by default", () => {
+    it("returns signature mode by default in production with signed profile", () => {
       vi.stubEnv("UDID_TOOLS_PROFILE_RESPONSE_VERIFICATION_MODE", "signature");
+      vi.stubEnv("UDID_TOOLS_PROFILE_SIGNING_MODE", "signed");
+      vi.stubEnv("NODE_ENV", "production");
       const config = profileResponseVerification();
       expect(config.allowUnsigned).toBe(false);
+      expect(config.verification.mode).toBe("signature");
+    });
+
+    it("allows unsigned responses in signature mode when unsigned profile is configured", () => {
+      vi.stubEnv("UDID_TOOLS_PROFILE_RESPONSE_VERIFICATION_MODE", "signature");
+      vi.stubEnv("UDID_TOOLS_PROFILE_SIGNING_MODE", "unsigned");
+      const config = profileResponseVerification();
+      expect(config.allowUnsigned).toBe(true);
       expect(config.verification.mode).toBe("signature");
     });
 
@@ -132,9 +150,8 @@ describe("server-config", () => {
       );
     });
 
-    it("throws when verification mode is invalid or none in production", () => {
-      vi.stubEnv("UDID_TOOLS_PROFILE_RESPONSE_VERIFICATION_MODE", "none");
-      vi.stubEnv("NODE_ENV", "production");
+    it("throws when verification mode is invalid", () => {
+      vi.stubEnv("UDID_TOOLS_PROFILE_RESPONSE_VERIFICATION_MODE", "invalid-mode");
       expect(() => profileResponseVerification()).toThrow(
         "UDID_TOOLS_PROFILE_RESPONSE_VERIFICATION_MODE is invalid or unsafe"
       );
@@ -166,6 +183,15 @@ describe("server-config", () => {
     it("throws when challenge secret is invalid base64", () => {
       vi.stubEnv("UDID_TOOLS_PROFILE_CHALLENGE_SECRET_BASE64", "invalid!");
       expect(() => profileChallengeSecret()).toThrow();
+    });
+
+    it("throws when challenge secret base64 has non-canonical padding bits", () => {
+      // 43 chars + '=' matches regex but contains non-zero unused padding bits
+      const nonCanonical = "A".repeat(42) + "B=";
+      vi.stubEnv("UDID_TOOLS_PROFILE_CHALLENGE_SECRET_BASE64", nonCanonical);
+      expect(() => profileChallengeSecret()).toThrow(
+        "UDID_TOOLS_PROFILE_CHALLENGE_SECRET_BASE64 is invalid"
+      );
     });
   });
 });

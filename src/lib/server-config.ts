@@ -57,10 +57,8 @@ export function publicOrigin() {
 export function profileSigning(): SigningOptions | undefined {
   const mode =
     process.env["UDID_TOOLS_PROFILE_SIGNING_MODE"] ??
-    (process.env.NODE_ENV === "production" ? "signed" : "unsigned");
+    (process.env["UDID_TOOLS_PROFILE_SIGNING_PKCS12_BASE64"] ? "signed" : "unsigned");
   if (mode === "unsigned") {
-    if (process.env.NODE_ENV === "production")
-      throw new Error("Unsigned profiles are disabled in production");
     return undefined;
   }
   if (mode !== "signed")
@@ -94,9 +92,13 @@ export function profileResponseVerification(): {
       },
     };
   }
-  if (mode === "signature") return { allowUnsigned: false, verification: { mode } };
-  if (mode === "none" && process.env.NODE_ENV !== "production")
-    return { allowUnsigned: true, verification: { mode } };
+  if (mode === "signature") {
+    const allowUnsigned =
+      process.env["UDID_TOOLS_PROFILE_SIGNING_MODE"] === "unsigned" ||
+      process.env.NODE_ENV !== "production";
+    return { allowUnsigned, verification: { mode } };
+  }
+  if (mode === "none") return { allowUnsigned: true, verification: { mode } };
   throw new Error("UDID_TOOLS_PROFILE_RESPONSE_VERIFICATION_MODE is invalid or unsafe");
 }
 
