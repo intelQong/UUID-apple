@@ -118,13 +118,88 @@ This repository and website are architected from the ground up to guarantee stri
 
 ---
 
-## Deployment on Vercel
+## Step-by-Step Tutorial: Deploy on Vercel for Personal Use
 
-This repository is optimized for one-click or CLI deployment on [Vercel](https://vercel.com):
+You can deploy your own private, 100% free Apple UDID retrieval utility on Vercel in under 5 minutes without an Apple Developer account or paid certificates.
 
-1. Import the repository into your Vercel dashboard (or run `npx vercel`).
-2. Configure the required environment variables listed above.
-3. Deploy. Vercel automatically compiles `next build` and hosts both the static assets and the serverless profile endpoints.
+### Step 1: Fork or Clone the Repository
+
+Fork this repository to your GitHub account, or clone and push it to your own repository:
+
+```bash
+git clone https://github.com/intelQong/UUID-apple.git
+cd UUID-apple
+```
+
+### Step 2: Generate Cryptographic Secrets
+
+Generate two random 32-byte base64 keys in your terminal using `openssl`:
+
+```bash
+# 1. Challenge secret (for stateless HMAC challenges)
+openssl rand -base64 32
+
+# 2. Result token encryption key (for AES-256-GCM bearer tokens)
+openssl rand -base64 32
+```
+
+Save these two output strings for the next step.
+
+### Step 3: Import Project into Vercel
+
+1. Sign in to your [Vercel Dashboard](https://vercel.com).
+2. Click **Add New… → Project**.
+3. Locate and click **Import** next to your `UUID-apple` repository.
+4. Set a lowercase project name (e.g. `my-udid-tool`).
+
+### Step 4: Configure Environment Variables
+
+Under the **Environment Variables** section in the Vercel import page, add the following variables:
+
+| Name                                         | Example Value                                      | Description                                                  |
+| :------------------------------------------- | :------------------------------------------------- | :----------------------------------------------------------- |
+| `UDID_TOOLS_PUBLIC_ORIGIN`                   | `https://my-udid-tool.vercel.app`                  | Your Vercel deployment URL (HTTPS).                          |
+| `UDID_TOOLS_PROFILE_SIGNING_MODE`            | `unsigned`                                         | Enables free, certificate-less profile generation.           |
+| `UDID_TOOLS_PROFILE_CHALLENGE_SECRET_BASE64` | `dGhpcy1pcy1hLXNhbXBsZS0zMi1ieXRlLWJhc2U2NC1rZXk=` | Your 32-byte base64 secret from Step 2.                      |
+| `UDID_TOOLS_RESULT_TOKEN_ACTIVE_KEY_ID`      | `2026-09`                                          | Active key identifier.                                       |
+| `UDID_TOOLS_RESULT_TOKEN_KEYS`               | `{"2026-09":"<KEY_FROM_STEP_2>"}`                  | JSON keyring containing your 32-byte base64 key from Step 2. |
+
+> **Note on `UDID_TOOLS_PUBLIC_ORIGIN`**: If you don't know your exact Vercel URL yet, you can enter your expected domain (e.g. `https://<your-project-name>.vercel.app`). After the initial deployment, you can verify your assigned Vercel URL in Project Settings and update this variable if needed.
+
+### Step 5: Deploy & Retrieve your UDID
+
+1. Click **Deploy**. Vercel will build and deploy the application in ~30 seconds.
+2. Open your deployment link (`https://my-udid-tool.vercel.app`) in **Mobile Safari** on your iPhone or iPad.
+3. Tap **Get iPhone UDID**.
+4. Tap **Allow** when prompted to download the configuration profile.
+5. Open your iPhone **Settings** app → tap **Profile Downloaded** near the top.
+6. Tap **Install** in the top right (enter your passcode, and confirm the unsigned warning).
+7. iOS will instantly query your hardware metadata and redirect back to Safari, displaying your **UDID**, **Serial Number**, **IMEI**, and **Model** with 1-tap copy buttons!
+
+---
+
+### Alternative: Fast CLI Deployment
+
+If you prefer deploying directly from the command line:
+
+```bash
+# 1. Install dependencies and authenticate Vercel CLI
+npm ci --ignore-scripts --no-audit --no-fund
+npx vercel login
+
+# 2. Link your project (must be lowercase)
+npx vercel link --project my-udid-tool --yes
+
+# 3. Add required environment variables
+printf "https://my-udid-tool.vercel.app" | npx vercel env add UDID_TOOLS_PUBLIC_ORIGIN production
+printf "unsigned" | npx vercel env add UDID_TOOLS_PROFILE_SIGNING_MODE production
+openssl rand -base64 32 | npx vercel env add UDID_TOOLS_PROFILE_CHALLENGE_SECRET_BASE64 production
+printf "2026-09" | npx vercel env add UDID_TOOLS_RESULT_TOKEN_ACTIVE_KEY_ID production
+node -e 'console.log(JSON.stringify({"2026-09": require("crypto").randomBytes(32).toString("base64")}))' | npx vercel env add UDID_TOOLS_RESULT_TOKEN_KEYS production
+
+# 4. Deploy to production
+npx vercel --prod
+```
 
 ---
 
