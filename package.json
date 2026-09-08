@@ -3,7 +3,7 @@
   "version": "1.0.7",
   "private": true,
   "type": "module",
-  "description": "Official UDID Tools website and free Safari-based UDID utility for iPhone and iPad.",
+  "description": "A minimal, privacy-first Apple UDID retrieval utility and developer guide for iPhone and iPad.",
   "homepage": "https://www.udid.tools",
   "bugs": {
     "url": "https://github.com/udid-tools/website/issues"

@@ -60,6 +60,9 @@ const noIndexHeaders = [{ key: "X-Robots-Tag", value: "noindex, noarchive, nosni
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  turbopack: {
+    root: import.meta.dirname,
+  },
   async headers() {
     return [
       { source: "/:path*", headers: securityHeaders },

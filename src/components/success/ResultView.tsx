@@ -38,6 +38,7 @@ export function ResultView({ result, sample }: ResultViewProps) {
   const [copiedFormat, setCopiedFormat] = useState<"txt" | "json" | null>(null);
   const [feedback, setFeedback] = useState("");
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const formatTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fields = [
     { label: "UDID", key: "UDID", value: data.udid },
     { label: "IMEI", key: "IMEI", value: data.imei },
@@ -53,6 +54,7 @@ export function ResultView({ result, sample }: ResultViewProps) {
   useEffect(
     () => () => {
       if (timer.current) clearTimeout(timer.current);
+      if (formatTimer.current) clearTimeout(formatTimer.current);
     },
     []
   );
@@ -106,7 +108,8 @@ export function ResultView({ result, sample }: ResultViewProps) {
     if (copied) {
       setCopiedFormat(format);
       temporaryFeedback(`All device info${format === "json" ? " (JSON)" : ""} copied`);
-      setTimeout(() => setCopiedFormat(null), 2000);
+      if (formatTimer.current) clearTimeout(formatTimer.current);
+      formatTimer.current = setTimeout(() => setCopiedFormat(null), 2000);
     } else temporaryFeedback("Copy failed. Please copy manually.");
     track("result_page_action", {
       action: "copy_all",
@@ -366,7 +369,7 @@ export function ResultView({ result, sample }: ResultViewProps) {
               <DeviceInfoCard
                 label="MEID"
                 value={data.meid}
-                type="imei"
+                type="meid"
                 onCopy={({ fieldLabel, fieldType, outcome }) =>
                   track("result_page_action", {
                     action: "copy_field",

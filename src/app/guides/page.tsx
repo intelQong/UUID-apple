@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight, BookOpen } from "lucide-react";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
+import { PageShell } from "@/components/PageShell";
 import { guides } from "@/content/guides";
 
 export const metadata: Metadata = {
@@ -38,9 +37,7 @@ export const metadata: Metadata = {
 
 export default function GuidesPage() {
   return (
-    <div className="min-h-screen bg-white font-sans">
-      <Header />
-
+    <PageShell>
       <main className="bg-gradient-to-b from-slate-50/70 to-white py-12 md:py-20">
         <div className="mx-auto max-w-6xl px-6">
           <div className="mb-12 max-w-3xl">
@@ -83,8 +80,6 @@ export default function GuidesPage() {
           </div>
         </div>
       </main>
-
-      <Footer />
-    </div>
+    </PageShell>
   );
 }

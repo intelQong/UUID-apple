@@ -14,10 +14,10 @@ export function Header() {
             How it works
           </Link>
           <Link
-            href="/#features"
+            href="/#faq"
             className="text-sm text-slate-500 transition-colors hover:text-slate-900"
           >
-            Features
+            FAQ
           </Link>
           <Link
             href="/guides"

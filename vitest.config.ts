@@ -18,8 +18,12 @@ export default defineConfig({
       include: [
         "src/lib/http.ts",
         "src/lib/profile-challenge.ts",
+        "src/lib/profile-service.ts",
+        "src/lib/result.ts",
         "src/lib/result-token.ts",
+        "src/lib/server-config.ts",
         "src/lib/observability/sentry.ts",
+        "src/utils/clipboard.ts",
       ],
       thresholds: { lines: 90, functions: 90, statements: 90, branches: 90 },
     },

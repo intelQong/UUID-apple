@@ -1,7 +1,7 @@
 import { createCipheriv, randomBytes } from "node:crypto";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { decryptResultToken, encryptResultToken, ResultTokenInputError } from "@/lib/result-token";
-import { sampleDeviceResult } from "@/lib/result";
+import { hasDeviceResult, sampleDeviceResult } from "@/lib/result";
 
 const originalKeys = process.env["UDID_TOOLS_RESULT_TOKEN_KEYS"];
 const originalActiveKey = process.env["UDID_TOOLS_RESULT_TOKEN_ACTIVE_KEY_ID"];
@@ -122,5 +122,34 @@ describe("result tokens", () => {
         )
       )
     ).toThrow(/field/u);
+  });
+
+  describe("hasDeviceResult", () => {
+    it("returns true when any field is non-empty", () => {
+      expect(hasDeviceResult(sampleDeviceResult)).toBe(true);
+      expect(
+        hasDeviceResult({
+          udid: "",
+          imei: "",
+          meid: "",
+          product: "",
+          serial: "ABC",
+          version: "",
+        })
+      ).toBe(true);
+    });
+
+    it("returns false when all fields are empty", () => {
+      expect(
+        hasDeviceResult({
+          udid: "",
+          imei: "",
+          meid: "",
+          product: "",
+          serial: "",
+          version: "",
+        })
+      ).toBe(false);
+    });
   });
 });

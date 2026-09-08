@@ -2,8 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ArrowRight, CheckCircle2, BookOpen } from "lucide-react";
-import { Footer } from "@/components/Footer";
-import { Header } from "@/components/Header";
+import { PageShell } from "@/components/PageShell";
 import { getGuide, guides } from "@/content/guides";
 
 type GuidePageProps = {
@@ -55,10 +54,8 @@ export default async function GuidePage({ params }: GuidePageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-white font-sans">
-      <Header />
-
-      <main className="bg-gradient-to-b from-slate-50/70 to-white">
+    <PageShell>
+      <main className="bg-gradient-to-b from-slate-50/70 to-white py-12 md:py-20">
         <article className="mx-auto max-w-4xl px-6 py-12 md:py-20">
           <Link
             href="/guides"
@@ -157,8 +154,6 @@ export default async function GuidePage({ params }: GuidePageProps) {
           </div>
         </article>
       </main>
-
-      <Footer />
-    </div>
+    </PageShell>
   );
 }

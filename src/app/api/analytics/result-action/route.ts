@@ -17,7 +17,7 @@ const OUTCOMES = new Set([
   "unavailable",
   "dismissed",
 ]);
-const FIELD_TYPES = new Set(["udid", "model", "version", "serial", "product", "imei"]);
+const FIELD_TYPES = new Set(["udid", "model", "version", "serial", "product", "imei", "meid"]);
 const FIELD_LABELS = new Set([
   "UDID",
   "Device Model",

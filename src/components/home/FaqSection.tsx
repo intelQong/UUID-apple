@@ -25,7 +25,7 @@ const faqs = [
 
 export function FaqSection() {
   return (
-    <section className="bg-slate-50 py-24">
+    <section id="faq" className="bg-slate-50 py-24">
       <div className="mx-auto max-w-3xl px-6">
         <div className="mb-12 text-center">
           <Motion

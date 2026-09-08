@@ -13,10 +13,13 @@ export async function writeClipboard(text: string): Promise<boolean> {
     const textarea = document.createElement("textarea");
     textarea.value = text;
     textarea.style.position = "fixed";
+    textarea.style.left = "-9999px";
+    textarea.style.top = "0";
     textarea.style.opacity = "0";
     textarea.setAttribute("readonly", "");
     document.body.appendChild(textarea);
-    textarea.select();
+    textarea.focus({ preventScroll: true });
+    textarea.setSelectionRange(0, text.length);
     const copied = document.execCommand("copy");
     textarea.remove();
     return copied;

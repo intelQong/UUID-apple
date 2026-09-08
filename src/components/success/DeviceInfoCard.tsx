@@ -12,6 +12,7 @@ const icons = {
   serial: Hash,
   product: Cpu,
   imei: Wifi,
+  meid: Wifi,
 };
 
 type DeviceInfoCardProps = {
