@@ -90,25 +90,41 @@ The verification gate enforces:
 
 ---
 
+## Privacy & Zero Personal Data Retention
+
+This repository and website are architected from the ground up to guarantee strict user privacy:
+
+- **Zero Databases & Persistent Storage**: There is no database (no SQL, MongoDB, Redis, or KV storage) and no disk storage. Device attributes are never saved, cached, or persisted anywhere on the server.
+- **In-Memory Ephemeral Processing**: When iOS transmits the device payload to `/api/retrieve`, the data exists purely in volatile server memory for the few milliseconds required to construct the encrypted result token.
+- **Authenticated Encryption (AES-256-GCM)**: Device attributes are delivered to the user's browser using versioned AES-256-GCM bearer tokens. Plaintext identifiers are never exposed in URLs or stored on the backend.
+- **Zero Logging Policy**: Serverless functions contain zero `console.log` statements and return generic error responses. Device identifiers, UDIDs, IMEIs, MEIDs, and serial numbers are never placed in logs.
+- **Telemetry & PII Scrubbing**: Request body capture and default PII in Sentry are disabled. All query strings, cookies, and sensitive payload keys are stripped before error events are dispatched. Analytics track only categorical user actions (e.g. "copy button clicked"), never raw device identifiers.
+- **No Apple Developer Certificate Required**: Supports unsigned `.mobileconfig` profiles out of the box. iOS allows installing unsigned configuration profiles with standard on-device user confirmation, requiring no Apple Developer accounts or paid certificates.
+
+---
+
 ## Environment Variables
 
-| Variable                            | Description                                        | Default / Example                |
-| :---------------------------------- | :------------------------------------------------- | :------------------------------- |
-| `NEXT_PUBLIC_SITE_ORIGIN`           | Public base URL of the deployment                  | `https://your-domain.vercel.app` |
-| `PROFILE_SIGNING_MODE`              | Profile signing mode (`unsigned`, `pkcs12`, `pem`) | `unsigned` (dev only)            |
-| `PROFILE_CHALLENGE_SECRET`          | Secret key for stateless HMAC challenges           | Random 32+ char string           |
-| `RESULT_TOKEN_PRIMARY_KEY`          | Primary AES-256-GCM key for result URLs            | 64-character hex string          |
-| `DEVICE_RESPONSE_VERIFICATION_MODE` | Verify Apple device responses (`none`, `strict`)   | `none`                           |
+| Variable                                        | Description                                                                  | Default / Example             |
+| :---------------------------------------------- | :--------------------------------------------------------------------------- | :---------------------------- |
+| `UDID_TOOLS_PUBLIC_ORIGIN`                      | Public base URL of the deployment (e.g., `https://uuid-apple.vercel.app`)    | `http://localhost:3000` (dev) |
+| `UDID_TOOLS_PROFILE_SIGNING_MODE`               | Profile signing mode (`unsigned` or `signed`)                                | `unsigned`                    |
+| `UDID_TOOLS_PROFILE_CHALLENGE_SECRET_BASE64`    | Canonical 32-byte base64 secret key for stateless HMAC challenges            | `openssl rand -base64 32`     |
+| `UDID_TOOLS_RESULT_TOKEN_ACTIVE_KEY_ID`         | Active key ID for the AES-256-GCM keyring                                    | `2026-09`                     |
+| `UDID_TOOLS_RESULT_TOKEN_KEYS`                  | JSON keyring of 32-byte base64 AES keys: `{"2026-09":"<base64-key>"}`        | `{"2026-09":"..."}`           |
+| `UDID_TOOLS_PROFILE_RESPONSE_VERIFICATION_MODE` | Apple device response verification (`signature`, `none`, or `trust-chain`)   | `signature`                   |
+| `UDID_TOOLS_PROFILE_SIGNING_PKCS12_BASE64`      | (Optional) Base64 Apple Developer `.p12` certificate for signed profile mode |                               |
+| `UDID_TOOLS_PROFILE_SIGNING_PKCS12_PASSPHRASE`  | (Optional) Passphrase for the PKCS#12 certificate                            |                               |
 
 ---
 
 ## Deployment on Vercel
 
-This repository is optimized for deployment on [Vercel](https://vercel.com):
+This repository is optimized for one-click or CLI deployment on [Vercel](https://vercel.com):
 
-1. Import the repository into your Vercel dashboard.
-2. Set the environment variables listed above.
-3. Deploy. Vercel automatically runs `next build` and deploys the static routes and serverless API endpoints.
+1. Import the repository into your Vercel dashboard (or run `npx vercel`).
+2. Configure the required environment variables listed above.
+3. Deploy. Vercel automatically compiles `next build` and hosts both the static assets and the serverless profile endpoints.
 
 ---
 
